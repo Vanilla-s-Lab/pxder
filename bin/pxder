@@ -72,13 +72,14 @@ handleArgv()
     // 检查更新
     const updater = new UpdateChecker();
     const updateChecking = updater.check();
-    const logNewVersionAndExit = () => {
-      if (updater.haveUpdate()) {
+
+    async function logNewVersionAndExit() {
+      if (await updater.haveUpdate()) {
         console.log(`New version ${updater.getLatestVersion().yellow} is available.`);
         console.log(`You can upgrade via the '${'npm i -g pxder'.yellow}' command.\n`);
       }
       process.exit();
-    };
+    }
 
     // 重登陆
     const pixiv = new Pixiv();
@@ -116,10 +117,10 @@ handleArgv()
     pixiv.clearReloginInterval();
     console.log();
 
-    if (updater.recentlyChecked()) logNewVersionAndExit();
+    if (updater.recentlyChecked()) await logNewVersionAndExit();
     else {
-      updateChecking.then(logNewVersionAndExit);
-      setTimeout(logNewVersionAndExit, 3000);
+      updateChecking.then(await logNewVersionAndExit);
+      setTimeout(await logNewVersionAndExit, 3000);
     }
   })
   .catch(e => {

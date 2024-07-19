@@ -1,4 +1,3 @@
-const compareVersions = require('compare-versions');
 const Fse = require('fs-extra');
 const Path = require('path');
 const Tools = require('./tools');
@@ -27,8 +26,11 @@ class UpdateChecker {
     } catch {}
   }
 
-  haveUpdate() {
-    return compareVersions(this.info.latestVersion, version) > 0;
+  async haveUpdate() {
+    return await import('compare-versions')
+        .then((mod) =>
+            mod.compareVersions(this.info.latestVersion, version) > 0
+        );
   }
 
   recentlyChecked() {
