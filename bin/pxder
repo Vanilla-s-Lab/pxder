@@ -45,6 +45,9 @@ program
   .version(pkg.version, '-v, --version')
   .parse(process.argv);
 
+// https://github.com/tj/commander.js#options
+const options = program.opts();
+
 /*
  * Start
  */
@@ -59,7 +62,7 @@ handleArgv()
     }
 
     // 导出 refresh token
-    if (program.exportToken) {
+    if (options.exportToken) {
       console.log(config.refresh_token);
       process.exit();
     }
@@ -85,30 +88,30 @@ handleArgv()
     console.log('\nDownload Path:\t'.cyan + config.download.path.toString().yellow);
     if (typeof config.proxy == 'string' && config.proxy.length > 0) console.log('Using Proxy:\t'.cyan + config.proxy.yellow);
 
-    if (program.follow) await pixiv.downloadFollowAll(false, program.force);
-    if (program.followPrivate) await pixiv.downloadFollowAll(true, program.force);
-    if (program.update) await pixiv.downloadUpdate();
-    if (program.bookmark) await pixiv.downloadBookmark();
-    if (program.bookmarkPrivate) await pixiv.downloadBookmark(true);
+    if (options.follow) await pixiv.downloadFollowAll(false, options.force);
+    if (options.followPrivate) await pixiv.downloadFollowAll(true, options.force);
+    if (options.update) await pixiv.downloadUpdate();
+    if (options.bookmark) await pixiv.downloadBookmark();
+    if (options.bookmarkPrivate) await pixiv.downloadBookmark(true);
 
-    if (program.uid) {
+    if (options.uid) {
       // 得到UID
-      let uids = program.uid;
+      let uids = options.uid;
       if (typeof uids == 'string') {
         uids = uids.split(',');
         await pixiv.downloadByUIDs(uids);
       } else help();
     }
-    if (program.pid) {
+    if (options.pid) {
       // 得到PID
-      let pids = program.pid;
+      let pids = options.pid;
       if (typeof pids == 'string') {
         pids = pids.split(',');
         await pixiv.downloadByPIDs(pids);
       } else help();
     }
 
-    if (!(program.follow || program.followPrivate || program.update || program.bookmark || program.bookmarkPrivate || program.uid || program.pid)) help();
+    if (!(options.follow || options.followPrivate || options.update || options.bookmark || options.bookmarkPrivate || options.uid || options.pid)) help();
 
     pixiv.clearReloginInterval();
     console.log();
@@ -134,14 +137,14 @@ handleArgv()
   });
 
 async function handleArgv() {
-  if (program.outputConfigDir) {
+  if (options.outputConfigDir) {
     console.log(require('appdata-path').getAppDataPath('pxder'));
     process.exit();
   }
 
   // 全局参数
-  if (program.debug) global.p_debug = true;
-  global.ugoiraMeta = program.ugoiraMeta;
+  if (options.debug) global.p_debug = true;
+  global.ugoiraMeta = options.ugoiraMeta;
 
   // 清理 protocol
   if (process.platform === 'win32' && (await LoginProtocol.exists())) {
@@ -150,21 +153,21 @@ async function handleArgv() {
 
   // 其他选项
   let pass = false;
-  if (program.login) {
+  if (options.login) {
     // 登录
     console.log('\nPixiv Login\n'.cyan);
     try {
       Pixiv.applyProxyConfig(config);
-      if (typeof program.login === 'string') {
+      if (typeof options.login === 'string') {
         // token 登录
-        const token = program.login.trim();
+        const token = options.login.trim();
         console.log('Login with refresh token', token.yellow);
         await Pixiv.loginByToken(token);
       } else {
         // OAuth 登录
         const { login_url, code_verifier } = pixivLogin();
         let code;
-        if (process.platform === 'win32' && program.protocol && (await LoginProtocol.canInstall()) && (await LoginProtocol.install())) {
+        if (process.platform === 'win32' && options.protocol && (await LoginProtocol.canInstall()) && (await LoginProtocol.install())) {
           console.log('Login URL:', login_url.cyan);
           console.log('Waiting login... More details:', 'https://git.io/Jt6Lj'.cyan);
 
@@ -195,11 +198,11 @@ async function handleArgv() {
       console.log('\nLogin fail!'.red, 'Please check your input or proxy setting.\n');
       if (global.p_debug) console.error(error);
     }
-  } else if (program.logout) {
+  } else if (options.logout) {
     // 登出
     Pixiv.logout();
     console.log('\nLogout success!\n'.green);
-  } else if (program.setting) {
+  } else if (options.setting) {
     // 设置
     let index;
     do {
@@ -287,8 +290,8 @@ async function handleArgv() {
   }
   if (!pass) process.exit();
 
-  if (program.outputDir) {
-    config.download.path = Path.resolve(program.outputDir);
+  if (options.outputDir) {
+    config.download.path = Path.resolve(options.outputDir);
   }
 }
 
@@ -303,5 +306,5 @@ function getStrictIntInput(question, option, limit, limitReply) {
 
 function help() {
   console.error('\nMissing arguments!'.bgRed);
-  program.outputHelp();
+  options.outputHelp();
 }
