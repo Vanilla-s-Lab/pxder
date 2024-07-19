@@ -1,4 +1,3 @@
-const getLatestVersion = require('latest-version');
 const compareVersions = require('compare-versions');
 const Fse = require('fs-extra');
 const Path = require('path');
@@ -19,7 +18,10 @@ class UpdateChecker {
   async check() {
     try {
       const agent = global.proxyAgent;
-      const latestVersion = await getLatestVersion(name, agent ? { agent } : {});
+
+      const latestVersion = await import('latest-version')
+          .then((mod) => mod.default(name, agent ? {agent} : {}));
+
       this.info.latestVersion = latestVersion;
       Fse.writeJsonSync(checkLogFile, this.info);
     } catch {}

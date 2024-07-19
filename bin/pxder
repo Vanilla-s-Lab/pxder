@@ -16,7 +16,6 @@ const receiveLoginCode = require('../src/protocol/receiver');
 const program = require('commander');
 const readline = require('readline-sync');
 const prompts = require('prompts');
-const open = require('open');
 
 /*
  * Usage
@@ -177,14 +176,20 @@ async function handleArgv() {
         if (process.platform === 'win32' && program.protocol && (await LoginProtocol.canInstall()) && (await LoginProtocol.install())) {
           console.log('Login URL:', login_url.cyan);
           console.log('Waiting login... More details:', 'https://git.io/Jt6Lj'.cyan);
-          open(login_url);
+
+            import('open')
+                .then((mod) => mod.default(login_url));
+
           code = await receiveLoginCode();
           await LoginProtocol.uninstall();
         } else {
           console.log('Before login, please read this first ->', 'https://git.io/Jt6Lj'.cyan);
           if (!readline.keyInYN('Continue?')) process.exit();
           console.log('\nLogin URL:', login_url.cyan);
-          open(login_url);
+
+            import('open')
+                .then((mod) => mod.default(login_url));
+
           code = (() => {
             while (true) {
               const input = readline.question('Code: '.yellow);
